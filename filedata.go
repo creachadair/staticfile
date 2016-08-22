@@ -27,6 +27,9 @@ type fileData struct {
 // by filepath.Clean, and any leading path separators are discarded.
 // This function will panic if path == "" or if the cleaned path has previously
 // been registered.
+//
+// This function is meant to be used from generated code, and should not
+// ordinarily be called directly by clients of the library.
 func Register(path, data string) {
 	registry.Lock()
 	defer registry.Unlock()
