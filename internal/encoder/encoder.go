@@ -8,6 +8,7 @@ import (
 	"compress/zlib"
 	"fmt"
 	"io"
+	"io/ioutil"
 )
 
 // Encode converts raw file contents into an encoded form.
@@ -23,6 +24,16 @@ func Encode(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("filepath: encoding error: %v", err)
 	}
 	return buf.Bytes(), nil
+}
+
+// Decode converts encoded file contents back to raw form.
+func Decode(data []byte) ([]byte, error) {
+	rc, err := zlib.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("filedata: decoding error: %v", err)
+	}
+	defer rc.Close()
+	return ioutil.ReadAll(rc)
 }
 
 // ToSource renders the given data as Go source text, which is written to w.

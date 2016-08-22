@@ -2,15 +2,14 @@ package filedata
 
 import (
 	"bytes"
-	"compress/zlib"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"bitbucket.org/creachadair/filedata/internal/encoder"
 )
 
 var registry = struct {
@@ -73,7 +72,7 @@ func Open(path string) (*File, error) {
 
 	// The first time we open a file, decode the bits.
 	if !d.Decoded {
-		dec, err := decode(d.Data)
+		dec, err := encoder.Decode(d.Data)
 		if err != nil {
 			return nil, err
 		}
@@ -82,14 +81,4 @@ func Open(path string) (*File, error) {
 	}
 
 	return &File{bytes.NewReader(d.Data)}, nil
-}
-
-// decode returns the raw file contents denoted by data.
-func decode(data []byte) ([]byte, error) {
-	rc, err := zlib.NewReader(bytes.NewReader(data))
-	if err != nil {
-		return nil, fmt.Errorf("filedata: decoding error: %v", err)
-	}
-	defer rc.Close()
-	return ioutil.ReadAll(rc)
 }
