@@ -19,9 +19,10 @@ import (
 var (
 	pkgName    = flag.String("pkg", "", "Output package name (required)")
 	trimPrefix = flag.String("trim", "", "Trim this prefix from each input path")
-	baseOnly   = flag.Bool("baseonly", false, "Use only the base name of each input path")
 	addPrefix  = flag.String("add", "", "Add this prefix to each registered path")
 	outputDir  = flag.String("dir", "", "Output directory (default is $PWD)")
+	baseOnly   = flag.Bool("baseonly", false, "Use only the base name of each input path")
+	atRoot     = flag.Bool("here", false, "Generate output directly in --dir")
 )
 
 func init() {
@@ -72,8 +73,13 @@ func main() {
 
 	// Set up the output directory.
 	dir := filepath.Join(*outputDir, *pkgName)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		log.Fatalf("Error setting up output directory: %v", err)
+	if *atRoot {
+		dir = *outputDir
+	}
+	if dir != "" {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			log.Fatalf("Error setting up output directory: %v", err)
+		}
 	}
 
 	// Compile...
