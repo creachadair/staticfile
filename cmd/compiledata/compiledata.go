@@ -19,6 +19,7 @@ import (
 var (
 	pkgName    = flag.String("pkg", "", "Output package name (required)")
 	trimPrefix = flag.String("trim", "", "Trim this prefix from each input path")
+	baseOnly   = flag.Bool("baseonly", false, "Use only the base name of each input path")
 	addPrefix  = flag.String("add", "", "Add this prefix to each registered path")
 	outputDir  = flag.String("dir", "", "Output directory (default is $PWD)")
 )
@@ -91,6 +92,10 @@ func compileFile(dir, name string, index int) (string, error) {
 
 	trimmed := strings.TrimPrefix(name, *trimPrefix)
 	added := filepath.Join(*addPrefix, trimmed)
+	if *baseOnly {
+		added = filepath.Join(*addPrefix, filepath.Base(trimmed))
+	}
+
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, `package %[1]s
 // This file was generated from %[2]q.
