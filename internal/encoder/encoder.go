@@ -41,7 +41,7 @@ func ToSource(w io.Writer, data []byte) error {
 	buf := bufio.NewWriter(w)
 	buf.WriteByte('"')
 
-	const maxWidth = 100
+	const maxWidth = 120
 	pos := 1
 	for _, b := range data {
 		if b < ' ' || b > '~' {
