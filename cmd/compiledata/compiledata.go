@@ -64,12 +64,20 @@ func main() {
 		log.Fatal("You must specify an output package name")
 	}
 
+	// Resolve all the files to be compiled.
+	inputs, err := expandGlobs(flag.Args())
+	if err != nil {
+		log.Fatalf("Error expanding globs: %v", err)
+	}
+
+	// Set up the output directory.
 	dir := filepath.Join(*outputDir, *pkgName)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		log.Fatalf("Error setting up output directory: %v", err)
 	}
 
-	for i, arg := range flag.Args() {
+	// Compile...
+	for i, arg := range inputs {
 		path, err := compileFile(dir, arg, i+1)
 		if err != nil {
 			log.Fatalf("Error compiling %q: %v", arg, err)
@@ -119,4 +127,25 @@ const file%[4]ddata = ""+
 
 	path := filepath.Join(dir, fmt.Sprintf("file%d.go", index))
 	return path, ioutil.WriteFile(path, code, 0644)
+}
+
+// expandGlobs returns the paths all matching ordinary files from the specified
+// globs. Non-files are silently skipped.
+func expandGlobs(globs []string) ([]string, error) {
+	var inputs []string
+	for _, arg := range flag.Args() {
+		match, err := filepath.Glob(arg)
+		if err != nil {
+			log.Fatalf("Invalid glob pattern %q: %v", arg, err)
+		}
+		for _, path := range match {
+			fi, err := os.Stat(path)
+			if err != nil {
+				return nil, err
+			} else if fi.Mode().IsRegular() {
+				inputs = append(inputs, path)
+			}
+		}
+	}
+	return inputs, nil
 }
