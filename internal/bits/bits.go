@@ -1,6 +1,6 @@
-// Package encoder provides support routines for encoding and decoding data.
-// It is part of the filedata compiler.
-package encoder
+// Package bits provides support routines for encoding and decoding data.  It
+// is part of the filedata compiler.
+package bits
 
 import (
 	"bufio"

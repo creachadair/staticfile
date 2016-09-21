@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"bitbucket.org/creachadair/filedata/internal/encoder"
+	"bitbucket.org/creachadair/filedata/internal/bits"
 )
 
 var (
@@ -99,7 +99,7 @@ func compileFile(dir, name string, index int) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("reading file contents: %v", err)
 	}
-	packed, err := encoder.Encode(data)
+	packed, err := bits.Encode(data)
 	if err != nil {
 		return "", fmt.Errorf("encoding file contents: %v", err)
 	}
@@ -123,7 +123,7 @@ func init() { filedata.Register(%[3]q, file%[4]ddata) }
 const file%[4]ddata = ""+
 `, *pkgName, trimmed, added, index, len(data), len(packed))
 
-	if err := encoder.ToSource(&buf, packed); err != nil {
+	if err := bits.ToSource(&buf, packed); err != nil {
 		return "", err
 	}
 	code, err := format.Source(buf.Bytes())

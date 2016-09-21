@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"bitbucket.org/creachadair/filedata/internal/encoder"
+	"bitbucket.org/creachadair/filedata/internal/bits"
 )
 
 var registry = struct {
@@ -75,7 +75,7 @@ func Open(path string) (*File, error) {
 
 	// The first time we open a file, decode the bits.
 	if !d.Decoded {
-		dec, err := encoder.Decode(d.Data)
+		dec, err := bits.Decode(d.Data)
 		if err != nil {
 			return nil, err
 		}
