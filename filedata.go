@@ -2,6 +2,8 @@ package filedata
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -31,20 +33,27 @@ type fileData struct {
 // This function is meant to be used from generated code, and should not
 // ordinarily be called directly by clients of the library.
 func Register(path, data string) {
+	if err := register(path, data); err != nil {
+		log.Panic(err)
+	}
+}
+
+func register(path, data string) error {
 	registry.Lock()
 	defer registry.Unlock()
 
 	clean := strings.TrimLeft(filepath.Clean(path), string(filepath.Separator))
 	if path == "" {
-		log.Panic("filedata: registered empty path")
+		return errors.New("filedata: registered empty path")
 	} else if _, ok := registry.data[clean]; ok {
-		log.Panicf("filedata: duplicate path registered: %q", clean)
+		return fmt.Errorf("filedata: duplicate path registered: %q", clean)
 	}
 	registry.data[clean] = &fileData{
 		Path:    clean,
 		Data:    []byte(data),
 		Decoded: false,
 	}
+	return nil
 }
 
 // A File is a read-only view of the contents of a static file.
