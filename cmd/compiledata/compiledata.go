@@ -19,10 +19,11 @@ import (
 var (
 	pkgName    = flag.String("pkg", "", "Output package name (required)")
 	trimPrefix = flag.String("trim", "", "Trim this prefix from each input path")
-	addPrefix  = flag.String("add", "", "Add this prefix to each registered path")
-	outputDir  = flag.String("dir", "", "Output directory (default is $PWD)")
-	baseOnly   = flag.Bool("baseonly", false, "Use only the base name of each input path")
-	atRoot     = flag.Bool("here", false, "Generate output directly in --dir")
+	addPrefix  = flag.String("add", "", "Join this prefix to each registered path")
+	baseOnly   = flag.Bool("base", false, "Take only the base name of each input path")
+	outputDir  = flag.String("out", "", "Output directory (default is $PWD)")
+	pkgDir     = flag.Bool("pkgdir", false, "Create a package subdirectory for --pkg")
+	outName    = flag.String("outname", "file", "Name prefix for output files")
 )
 
 func init() {
@@ -34,7 +35,7 @@ source package. Each input file is compiled to a separate Go source file.
 
 By default, each file is registered to the filedata package on import under its
 original path, less any leading path separators. Use --trim to discard a common
-prefix from each input path.  Use --add to prepend a prefix to each registered
+prefix from each input path.  Use --add to join a prefix before each registered
 name.
 
 To include the compiled data in a program, import the generated package.
@@ -46,7 +47,7 @@ you ran
 then you could access "file.txt" by writing:
 
     import "bitbucket.org/creachadair/filedata"
-    import "./staticdata"  // or wherever you put the package
+    import "./staticdata"
     ...
     f, err := filedata.Open("path/to/my/file.txt")
 
@@ -63,6 +64,8 @@ func main() {
 		log.Fatal("You must specify at least one input file")
 	case *pkgName == "":
 		log.Fatal("You must specify an output package name")
+	case *outName == "":
+		log.Fatal("You must specify an output filename")
 	}
 
 	// Resolve all the files to be compiled.
@@ -72,9 +75,9 @@ func main() {
 	}
 
 	// Set up the output directory.
-	dir := filepath.Join(*outputDir, *pkgName)
-	if *atRoot {
-		dir = *outputDir
+	dir := *outputDir
+	if *pkgDir {
+		dir = filepath.Join(dir, *pkgName)
 	}
 	if dir != "" {
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -131,7 +134,7 @@ const file%[4]ddata = ""+
 		return "", fmt.Errorf("formatting source: %v", err)
 	}
 
-	path := filepath.Join(dir, fmt.Sprintf("file%d.go", index))
+	path := filepath.Join(dir, fmt.Sprintf("%s%d.go", *outName, index))
 	return path, ioutil.WriteFile(path, code, 0644)
 }
 
