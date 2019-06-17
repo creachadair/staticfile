@@ -112,7 +112,7 @@ func compileFiles(paths []string) error {
 		v.Files = append(v.Files, file{
 			Path: trimmed,
 			Name: added,
-			Var:  fmt.Sprintf("__fileData%d", i+1),
+			Var:  fmt.Sprintf("_fileData%d", i+1),
 			Data: src.String(),
 			Len:  len(data),
 		})
