@@ -79,8 +79,20 @@ func (f *File) Seek(off int64, whence int) (int64, error) { return f.data.Seek(o
 func (f *File) WriteTo(w io.Writer) (int64, error) { return f.data.WriteTo(w) }
 
 // Open opens a static file given its clean registered path.
-// Returns io.ErrNotExist if no such path is registered.
+// It reports io.ErrNotExist if no such path is registered.
 func Open(path string) (*File, error) {
+	data, err := openData(path)
+	if err != nil {
+		return nil, err
+	}
+	return &File{bytes.NewReader(data)}, nil
+}
+
+// ReadAll reads the complete contents of a static file given its clean
+// registered path. It reports io.ErrNotExist if no such path is registered.
+func ReadAll(path string) ([]byte, error) { return openData(path) }
+
+func openData(path string) ([]byte, error) {
 	registry.Lock()
 	defer registry.Unlock()
 
@@ -99,5 +111,15 @@ func Open(path string) (*File, error) {
 		d.Decoded = true
 	}
 
-	return &File{bytes.NewReader(d.Data)}, nil
+	return d.Data, nil
+}
+
+// MustReadAll returns the full content of the specified static file or panics.
+// It is intended for use during program initialization.
+func MustReadAll(path string) []byte {
+	data, err := openData(path)
+	if err != nil {
+		panic(err)
+	}
+	return data
 }
