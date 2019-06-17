@@ -1,10 +1,10 @@
-package filedata
+package staticfile
 
 import (
 	"io/ioutil"
 	"testing"
 
-	"bitbucket.org/creachadair/filedata/internal/bits"
+	"github.com/creachadair/staticfile/internal/bits"
 )
 
 func reset() {

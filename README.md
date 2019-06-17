@@ -1,81 +1,26 @@
 # filedata
 
-http://godoc.org/bitbucket.org/creachadair/filedata
+http://godoc.org/github.com/creachadair/staticfile
 
-This repository provides tools to compile static file data into a Go binary,
-and to access those files via a file-like interface.
+This repository provides a tool to compile static data into a Go binary, and to
+access those data via a file-like interface.
 
-## Overview
+The `compiledata` program generates a Go source file in the specified package
+that embeds the contents of the named file globs:
 
-For the sake of discussion, let's assume you have a directory structure that
-looks like this:
+    compiledata -pkg staticdata -out static.go data/*
 
-```
-src/
-  myrepo/
-    data/
-      static.html
-      main.css
-    server/
-      main.go
-```
+The resulting file can be compiled into a package in the usual way.  This tool
+can also be invoked from `go generate` rules.
 
-Use the `compiledata` command to create a Go source package representing a set
-of static files:
-
-    compiledata -pkg staticdata data/*
-
-Assuming this is run from within the `src/myrepo/` directory, you now have:
-
-```
-src/
-  myrepo/
-    data/
-      static.html
-      main.css
-    server/
-      main.go
-    staticdata/
-      file1.go
-      file2.go
-```
-
-You can build this package in the usual way:
-
-    go build myrepo/staticdata
-
-To use these files, import the `staticdata` package in your main:
+In common use, the main package will blank import the static data package, and
+other packages access the files via the `staticfile` package:
 
 ```go
-import (
-   "bitbucket.org/creachadair/filedata"
+import "github.com/creachadair/staticfile"
 
-  _ "myrepo/staticdata"
-)
+f, err := staticfile.Open("data/main.css")
+...
+defer f.Close()
+doStuffWith(f)
 ```
-
-The generated package has the side effect of registering the files under their
-original paths, and you can open them by using `filedata.Open`:
-
-```go
-f, err := filedata.Open("data/main.css")
-if err != nil {
-  // ...
-}
-```
-
-## Using "go generate"
-
-You can also use `compiledata` with the `go generate` subcommand. Going back to
-the original layout, add a `staticdata/gen.go` file like:
-
-```go
-package staticdata
-//go:generate compiledata -pkg staticdata -here ../data/*
-```
-
-Now you can run
-
-    go generate myrepo/staticdata
-
-and get the same effect.

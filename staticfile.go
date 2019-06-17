@@ -1,4 +1,4 @@
-package filedata
+package staticfile
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"bitbucket.org/creachadair/filedata/internal/bits"
+	"github.com/creachadair/staticfile/internal/bits"
 )
 
 var registry = struct {
@@ -66,10 +66,17 @@ func (*File) Close() error { return nil }
 // Size reports the total unencoded size of the file contents, in bytes.
 func (f *File) Size() int64 { return f.data.Size() }
 
-func (f *File) Read(data []byte) (int, error)              { return f.data.Read(data) }
+// Read implements the io.Reader interface.
+func (f *File) Read(data []byte) (int, error) { return f.data.Read(data) }
+
+// ReadAt implements the io.ReaderAt interface.
 func (f *File) ReadAt(data []byte, off int64) (int, error) { return f.data.ReadAt(data, off) }
-func (f *File) Seek(off int64, whence int) (int64, error)  { return f.data.Seek(off, whence) }
-func (f *File) WriteTo(w io.Writer) (int64, error)         { return f.data.WriteTo(w) }
+
+// Seek implements the io.Seeker interface.
+func (f *File) Seek(off int64, whence int) (int64, error) { return f.data.Seek(off, whence) }
+
+// WriteTo implements the io.WriterTo interface
+func (f *File) WriteTo(w io.Writer) (int64, error) { return f.data.WriteTo(w) }
 
 // Open opens a static file given its clean registered path.
 // Returns io.ErrNotExist if no such path is registered.
