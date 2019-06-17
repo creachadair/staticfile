@@ -60,7 +60,8 @@ func register(path, data string) error {
 // It implements io.Reader, io.ReaderAt, io.Seeker, and io.WriterTo.
 type File struct{ data *bytes.Reader }
 
-// Close implements io.Closer. This implementation never returns an error.
+// Close implements io.Closer. This implementation never returns an error, and
+// no resources are leaked if a *File is not closed.
 func (*File) Close() error { return nil }
 
 // Size reports the total unencoded size of the file contents, in bytes.
