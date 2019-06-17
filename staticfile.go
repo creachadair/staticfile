@@ -119,7 +119,7 @@ func openData(path string) ([]byte, error) {
 func MustReadAll(path string) []byte {
 	data, err := openData(path)
 	if err != nil {
-		panic(err)
+		log.Panicf("reading %q: %v", path, err)
 	}
 	return data
 }
