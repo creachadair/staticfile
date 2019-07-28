@@ -1,7 +1,10 @@
 package staticfile
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/creachadair/staticfile/internal/bits"
@@ -48,21 +51,44 @@ func TestFileOpen(t *testing.T) {
 		Register(name, string(packed))
 	}
 
+	// Include a "real" file to verify that delegation works.
+	const realData = "Ernest, who choked on a peach"
+	f, err := ioutil.TempFile("", "real*.txt")
+	if err != nil {
+		t.Fatalf("Creating temp file: %v", err)
+	}
+	name := f.Name()
+	defer os.Remove(name)
+	fmt.Fprint(f, realData)
+	f.Close()
+	files[name] = realData
+
 	for name := range files {
-		f, err := Open(name)
-		if err != nil {
-			t.Errorf("Open(%q) failed: %v", name, err)
-			continue
-		}
-		data, err := ioutil.ReadAll(f)
-		if err := f.Close(); err != nil {
-			t.Errorf("%q.Close() failed: %v", name, err)
-		}
-		if err != nil {
-			t.Errorf("Error reading %q: %v", name, err)
-		}
-		if got := string(data); got != files[name] {
-			t.Errorf("Wrong data for %q: got %q, want %q", name, got, files[name])
-		}
+		base := filepath.Base(name)
+		t.Run("Open-"+base, func(t *testing.T) {
+			f, err := Open(name)
+			if err != nil {
+				t.Fatalf("Open(%q) failed: %v", name, err)
+			}
+			data, err := ioutil.ReadAll(f)
+			if err := f.Close(); err != nil {
+				t.Errorf("%q.Close() failed: %v", name, err)
+			}
+			if err != nil {
+				t.Errorf("Error reading %q: %v", name, err)
+			}
+			if got := string(data); got != files[name] {
+				t.Errorf("Wrong data for %q: got %q, want %q", name, got, files[name])
+			}
+		})
+		t.Run("ReadFile-"+base, func(t *testing.T) {
+			data, err := ReadFile(name)
+			if err != nil {
+				t.Fatalf("ReadFile(%q) failed: %v", name, err)
+			}
+			if got := string(data); got != files[name] {
+				t.Errorf("Wrong data for %q: got %q, want %q", name, got, files[name])
+			}
+		})
 	}
 }
