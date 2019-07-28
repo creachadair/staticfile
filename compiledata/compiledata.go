@@ -22,7 +22,7 @@ var (
 	trimPrefix = flag.String("trim", "", "Trim this prefix from each input path")
 	addPrefix  = flag.String("add", "", "Join this prefix to each registered path")
 	baseOnly   = flag.Bool("base", false, "Take only the base name of each input path")
-	outputPath = flag.String("out", "", "Ouptut path (required)")
+	outputPath = flag.String("out", "", "Output path (required)")
 )
 
 func init() {
