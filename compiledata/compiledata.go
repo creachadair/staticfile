@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	pkgName    = flag.String("pkg", "", "Output package name (required)")
+	pkgName    = flag.String("pkg", os.Getenv("GOPACKAGE"), "Output package name (required)")
 	trimPrefix = flag.String("trim", "", "Trim this prefix from each input path")
 	addPrefix  = flag.String("add", "", "Join this prefix to each registered path")
 	baseOnly   = flag.Bool("base", false, "Take only the base name of each input path")
@@ -134,7 +134,7 @@ func compileFiles(paths []string) error {
 // globs. Non-files are silently skipped.
 func expandGlobs(globs []string) ([]string, error) {
 	var inputs []string
-	for _, arg := range flag.Args() {
+	for _, arg := range globs {
 		match, err := filepath.Glob(arg)
 		if err != nil {
 			log.Fatalf("Invalid glob pattern %q: %v", arg, err)
