@@ -22,12 +22,15 @@ var (
 	trimPrefix = flag.String("trim", "", "Trim this prefix from each input path")
 	addPrefix  = flag.String("add", "", "Join this prefix to each registered path")
 	baseOnly   = flag.Bool("base", false, "Take only the base name of each input path")
+	doSet      = flag.Bool("set", false, "Treat paths as target=path mappings, and do not glob")
 	outputPath = flag.String("out", "", "Output path (required)")
 )
 
 func init() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, `Usage: %s [options] <file-glob>...
+		fmt.Fprintf(os.Stderr, `
+Usage: %[1]s [options] <file-glob>...
+       %[1]s -set <target=path>...
 
 Compile the files specified by the glob patterns into a Go source package.
 Each file is registered to the staticfile package on import under its original
@@ -35,6 +38,11 @@ path, discarding any leading path separators.
 
 Use -trim to discard a common prefix from each path before registration.
 Use -add to join a prefix before each registered path.
+
+If -set is true, then input arguments are not globbed: Instead, each non-flag
+argument names a single file. If an argument has the form target=path, target
+is used as the registration name, and path is the input file to read.  The
+effects of -add and -trim are applied to target in that case.
 
 The compiled files can be accessed via the staticfile package:
 
@@ -52,7 +60,7 @@ func main() {
 	flag.Parse()
 	switch {
 	case flag.NArg() == 0:
-		log.Fatal("You must specify at least one input glob")
+		log.Fatal("You must specify at least one input argument")
 	case *pkgName == "":
 		log.Fatal("You must specify an output package name")
 	case *outputPath == "":
@@ -60,7 +68,7 @@ func main() {
 	}
 
 	// Resolve all the files to be compiled.
-	inputs, err := expandGlobs(flag.Args())
+	inputs, err := expandInputs(flag.Args())
 	if err != nil {
 		log.Fatalf("Error expanding globs: %v", err)
 	}
@@ -77,7 +85,7 @@ func main() {
 
 // compileFiles generates a source file containing the contents of each
 // specified file registered under its stipulated path.
-func compileFiles(paths []string) error {
+func compileFiles(paths []paths) error {
 	type file struct {
 		Path string
 		Name string
@@ -91,8 +99,8 @@ func compileFiles(paths []string) error {
 		Files []file
 	}{Pkg: *pkgName, Args: strings.Join(os.Args[1:], " ")}
 
-	for i, name := range paths {
-		data, err := ioutil.ReadFile(name)
+	for i, p := range paths {
+		data, err := ioutil.ReadFile(p.path)
 		if err != nil {
 			return fmt.Errorf("reading file contents: %v", err)
 		}
@@ -100,11 +108,12 @@ func compileFiles(paths []string) error {
 		if err != nil {
 			return fmt.Errorf("encoding file contents: %v", err)
 		}
-		trimmed := strings.TrimPrefix(name, *trimPrefix)
+		trimmed := strings.TrimPrefix(p.target, *trimPrefix)
 		added := filepath.Join(*addPrefix, trimmed)
 		if *baseOnly {
 			added = filepath.Join(*addPrefix, filepath.Base(trimmed))
 		}
+
 		var src bytes.Buffer
 		if err := bits.ToSource(&src, packed); err != nil {
 			return fmt.Errorf("packing file contents: %v", err)
@@ -130,11 +139,25 @@ func compileFiles(paths []string) error {
 	return ioutil.WriteFile(*outputPath, code, 0644)
 }
 
-// expandGlobs returns the paths all matching ordinary files from the specified
-// globs. Non-files are silently skipped.
-func expandGlobs(globs []string) ([]string, error) {
-	var inputs []string
-	for _, arg := range globs {
+type paths struct {
+	path, target string
+}
+
+// expandInputs returns the path mappings specified by the given arguments,
+// respecting the command-line flag settings. When globbing, non-files are
+// silently skipped.
+func expandInputs(args []string) ([]paths, error) {
+	var inputs []paths
+	for _, arg := range args {
+		if *doSet {
+			parts := strings.SplitN(arg, "=", 2)
+			if len(parts) == 1 {
+				parts = append(parts, parts[0])
+			}
+			inputs = append(inputs, paths{path: parts[1], target: parts[0]})
+			continue
+		}
+
 		match, err := filepath.Glob(arg)
 		if err != nil {
 			log.Fatalf("Invalid glob pattern %q: %v", arg, err)
@@ -144,7 +167,7 @@ func expandGlobs(globs []string) ([]string, error) {
 			if err != nil {
 				return nil, err
 			} else if fi.Mode().IsRegular() {
-				inputs = append(inputs, path)
+				inputs = append(inputs, paths{path, path})
 			}
 		}
 	}
