@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/creachadair/staticfile/internal/bits"
@@ -27,9 +26,8 @@ type fileData struct {
 }
 
 // Register the contents of a file under the given path.  The path is cleaned
-// by filepath.Clean, and any leading path separators are discarded.
-// This function will panic if path == "" or if the cleaned path has previously
-// been registered.
+// by filepath.Clean.  This function will panic if path == "" or if the cleaned
+// path has previously been registered.
 //
 // This function is meant to be used from generated code, and should not
 // ordinarily be called directly by clients of the library.
@@ -40,13 +38,14 @@ func Register(path, data string) {
 }
 
 func register(path, data string) error {
-	registry.Lock()
-	defer registry.Unlock()
-
-	clean := strings.TrimLeft(filepath.Clean(path), string(filepath.Separator))
 	if path == "" {
 		return errors.New("filedata: registered empty path")
-	} else if _, ok := registry.data[clean]; ok {
+	}
+
+	registry.Lock()
+	defer registry.Unlock()
+	clean := filepath.Clean(path)
+	if _, ok := registry.data[clean]; ok {
 		return fmt.Errorf("filedata: duplicate path registered: %q", clean)
 	}
 	registry.data[clean] = &fileData{
