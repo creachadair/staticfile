@@ -19,9 +19,9 @@ func Encode(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	if _, err := w.Write(data); err != nil {
-		return nil, fmt.Errorf("filepath: encoding error: %v", err)
+		return nil, fmt.Errorf("staticfile: encoding error: %v", err)
 	} else if err := w.Close(); err != nil {
-		return nil, fmt.Errorf("filepath: encoding error: %v", err)
+		return nil, fmt.Errorf("staticfile: encoding error: %v", err)
 	}
 	return buf.Bytes(), nil
 }
@@ -30,7 +30,7 @@ func Encode(data []byte) ([]byte, error) {
 func Decode(data []byte) ([]byte, error) {
 	rc, err := zlib.NewReader(bytes.NewReader(data))
 	if err != nil {
-		return nil, fmt.Errorf("filedata: decoding error: %v", err)
+		return nil, fmt.Errorf("staticfile: decoding error: %v", err)
 	}
 	defer rc.Close()
 	return ioutil.ReadAll(rc)
