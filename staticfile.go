@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -99,11 +98,11 @@ func Open(path string) (File, error) {
 }
 
 // ReadFile reads the complete contents of the specified file path. If path is
-// not a registered static file path, ReadFile delegates to ioutil.ReadFile.
+// not a registered static file path, ReadFile delegates to os.ReadFile.
 func ReadFile(path string) ([]byte, error) {
 	data, err := openData(path)
 	if err == os.ErrNotExist {
-		return ioutil.ReadFile(path)
+		return os.ReadFile(path)
 	} else if err != nil {
 		return nil, err
 	}
