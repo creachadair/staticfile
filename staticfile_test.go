@@ -2,7 +2,7 @@ package staticfile
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -53,7 +53,7 @@ func TestFileOpen(t *testing.T) {
 
 	// Include a "real" file to verify that delegation works.
 	const realData = "Ernest, who choked on a peach"
-	f, err := ioutil.TempFile("", "real*.txt")
+	f, err := os.CreateTemp("", "real*.txt")
 	if err != nil {
 		t.Fatalf("Creating temp file: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestFileOpen(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Open(%q) failed: %v", name, err)
 			}
-			data, err := ioutil.ReadAll(f)
+			data, err := io.ReadAll(f)
 			if err := f.Close(); err != nil {
 				t.Errorf("%q.Close() failed: %v", name, err)
 			}

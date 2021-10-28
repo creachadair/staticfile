@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"go/format"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -100,7 +99,7 @@ func compileFiles(paths []paths) error {
 	}{Pkg: *pkgName, Args: strings.Join(os.Args[1:], " ")}
 
 	for i, p := range paths {
-		data, err := ioutil.ReadFile(p.path)
+		data, err := os.ReadFile(p.path)
 		if err != nil {
 			return fmt.Errorf("reading file contents: %v", err)
 		}
@@ -136,7 +135,7 @@ func compileFiles(paths []paths) error {
 		return fmt.Errorf("formatting source: %v", err)
 	}
 
-	return ioutil.WriteFile(*outputPath, code, 0644)
+	return os.WriteFile(*outputPath, code, 0644)
 }
 
 type paths struct {
