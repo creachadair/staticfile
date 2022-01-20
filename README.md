@@ -1,7 +1,6 @@
 # staticfile
 
 [![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/creachadair/staticfile)
-[![Go Report Card](https://goreportcard.com/badge/github.com/creachadair/atomicfile)](https://goreportcard.com/report/github.com/creachadair/staticfile)
 
 This repository provides a tool to compile static data into a Go binary, and to
 access those data via a file-like interface.
