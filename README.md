@@ -1,6 +1,7 @@
 # staticfile
 
-[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/creachadair/staticfile)
+> This package is obsolete. New programs should use https://pkg.go.dev/embed instead.
+> This repository remains to support existing use.
 
 This repository provides a tool to compile static data into a Go binary, and to
 access those data via a file-like interface.
